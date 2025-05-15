@@ -17,26 +17,29 @@ function updateCode() {
   }
   let code = (pseudoRandom % 64).toString(2);
   while (code.endsWith("0")) code = code.slice(0, -1);
-  let knockCode = code
-    .split("")
-    .reduce((acc, c) => (c === "1" ? acc + " 1xknock" : acc + " 1s_pause"), "");
-  knockCode = knockCode.split(" ").slice(1);
-  knockCode.forEach((el, i, arr) => {
-    if (i === arr.length - 1) return;
-    if (
-      (el.endsWith("knock") && arr[i + 1].endsWith("knock")) ||
-      (el.endsWith("pause") && arr[i + 1].endsWith("pause"))
-    ) {
-      let times = Number.parseInt(el);
-      times++;
-      arr[i] = times + el.slice(Number.parseInt(el).toString().length);
-      arr.splice(i + 1, 1);
+
+  code = code.split("");
+  code = code.map(function (el) {
+    if (el === "0") return -1;
+    if (el === "1") return 1;
+  });
+
+  code = code.reduce(function (acc, el) {
+    if (acc.length === 0) return [el];
+    if ((acc.at(-1) > 0 && el > 0) || (acc.at(-1) < 0 && el < 0))
+      acc[acc.length - 1] = el + acc.at(-1);
+    else acc.push(el);
+    return acc;
+  }, []);
+  code = code.map((el) => {
+    if (el > 0) {
+      return `${el}xknock`;
+    } else {
+      return `${-el}s pause`;
     }
   });
-  knockCode = knockCode.join();
-  knockCode = knockCode.replaceAll(",", ", ").replaceAll("s_", "s ");
-
-  const html = `<h1> Todays code is: <span>${knockCode}<span>`;
+  code = code.toString().replaceAll(",", ", ");
+  const html = `<h1> Todays code is: <span>${code}<span>`;
 
   document.querySelector("body").insertAdjacentHTML("afterbegin", html);
   document.querySelector("span").style.backgroundColor = "rgb(123, 209, 9)";
